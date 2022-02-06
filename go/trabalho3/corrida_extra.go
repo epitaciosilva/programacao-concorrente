@@ -16,13 +16,14 @@ func randTime() float64 {
 	return float64(i) + f
 }
 
-// função que presenta a corrida de cada corredor
-// wg -> variável para sincronizar as threads
+// função que representa a corrida de cada corredor
+// wg -> variável para sincronizar a execução da thread principal com as demais
 // runner -> número do participante
+// number_team -> número da equipe
 // bastao -> canal para verificar se recebeu o bastao e então pode correr
 // nextRunner -> canal que presenta o próximo corredor, no qual tem que passar o bastao
 // team_time -> canal com os tempos de cada membro da equipe
-func run(wg *sync.WaitGroup, runner int, team int, bastao chan bool, nextRunner chan<- bool, team_time chan<- float64) {
+func run(wg *sync.WaitGroup, runner int, number_team int, bastao chan bool, nextRunner chan<- bool, team_time chan<- float64) {
 	defer wg.Done()
 
 	// enquanto não receber o bastao, fica em espera
@@ -32,7 +33,7 @@ func run(wg *sync.WaitGroup, runner int, team int, bastao chan bool, nextRunner 
 	runner_time := randTime()
 
 	// Dados do corredor
-	fmt.Printf("Equipe %d - Corredor %d: %.2fs\n", team, runner, runner_time)
+	fmt.Printf("Equipe %d - Corredor %d: %.2fs\n", number_team, runner, runner_time)
 
 	// 1 segundo, pois adicionar o tempo real demoraria para terminar de rodar o programa
 	time.Sleep(1*time.Second)
@@ -51,7 +52,11 @@ func run(wg *sync.WaitGroup, runner int, team int, bastao chan bool, nextRunner 
 	}
 }
 
-func team(wg *sync.WaitGroup, team int, teams_time []float64) {
+// função que representa a corrida de cada equipe
+// wg -> variável para sincronizar a execução da thread principal com as demais
+// number_team -> número da equipe
+// teams_time -> slice para armazenar o tempo total cada equipe
+func team(wg *sync.WaitGroup, number_team int, teams_time []float64) {
 	defer wg.Done()
 
 	// canais que representam os corredores
@@ -64,20 +69,20 @@ func team(wg *sync.WaitGroup, team int, teams_time []float64) {
 
 	wg.Add(1)
 	// 1º corredor e o próximo é o 2º
-	go run(wg, 1, team, runner1, runner2, team_time)
+	go run(wg, 1, number_team, runner1, runner2, team_time)
 
 	wg.Add(1)
 	// 2º corredor e o próximo é o 3º
-	go run(wg, 2, team, runner2, runner3, team_time)
+	go run(wg, 2, number_team, runner2, runner3, team_time)
 
 	wg.Add(1)
 	// 3º corredor e o próximo é o 4º
-	go run(wg, 3, team, runner3, runner4, team_time)
+	go run(wg, 3, number_team, runner3, runner4, team_time)
 
 	wg.Add(1)
 	// 4º corredor
 	// não tem próximo, mas a função exige um parâmetro
-	go run(wg, 4, team, runner4, runner4, team_time)
+	go run(wg, 4, number_team, runner4, runner4, team_time)
 
 	runner1 <- true
 
@@ -88,7 +93,7 @@ func team(wg *sync.WaitGroup, team int, teams_time []float64) {
 		soma = soma + t
 	}
 	// adiciona a soma ao slice, cada posição representa uma equipe
-	teams_time[team-1] = soma
+	teams_time[number_team-1] = soma
 }
 
 func main() {
