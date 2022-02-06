@@ -24,12 +24,7 @@ func c1(wg *sync.WaitGroup, runner int, bastao chan bool, nextRunner chan<- bool
 	defer wg.Done()
 
 	// enquanto não receber o bastao, fica em espera
-	correr := false
-	for !correr {
-		select {
-		case correr = <- bastao:
-		}
-	}
+	correr := <- bastao
 
 	// Dados do corredor
 	fmt.Printf("Corredor %d: ", runner)
@@ -53,7 +48,7 @@ func main() {
 
 	// canais que representam os corredores
 	runner1 := make(chan bool)
-    runner2 := make(chan bool)
+	runner2 := make(chan bool)
 	runner3 := make(chan bool)
 	runner4 := make(chan bool)
 
